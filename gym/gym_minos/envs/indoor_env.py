@@ -6,11 +6,18 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 import numpy as np
+import time
 
 # This is currently an experimental wrapper that wraps around the room simulator
 # It may make sense to wrap the Simulator and have several prespecified configurations
 #  (or have a base IndoorEnv and specific scenarios on top of it)
 from minos.lib.RoomSimulator import RoomSimulator
+
+def get_l2_distance(x1, x2, y1, y2):
+    """
+    Computes the L2 distance between two points
+    """
+    return ((x1-x2)**2 + (y1-y2)**2)**0.5
 
 
 class IndoorEnv(gym.Env):
@@ -24,12 +31,16 @@ class IndoorEnv(gym.Env):
     def configure(self, sim_args):
         self._sim = RoomSimulator(sim_args)
         self._sim_obs_space = self._sim.get_observation_space(sim_args['outputs'])
-        #self.action_space = spaces.Discrete(self._sim.num_buttons)
-        self.action_space = spaces.MultiBinary(self._sim.num_buttons)
+        self.action_space = spaces.Discrete(self._sim.num_buttons)
+        #self.action_space = spaces.MultiBinary(self._sim.num_buttons)
         self.screen_height = self._sim_obs_space['color'].shape[1]
         self.screen_width = self._sim_obs_space['color'].shape[0]
-        self.observation_space = spaces.Box(low=0, high=255, 
-            shape=(self.screen_height, self.screen_width, 3))
+        self.observation_space = spaces.Box(low=0, high=255,
+            shape=(len(sim_args['input_type']), self.screen_height, self.screen_width), dtype='uint8')
+
+        self.input_type = sim_args['input_type']
+        self.reward_type = sim_args['reward_type']
+        self.max_episode_length = sim_args['max_episode_length']
         # TODO: have more complex observation space with additional modalities and measurements
         # obs_space = self._sim.get_observation_space
         #self.observation_space = spaces.Dict({"images": ..., "depth": ...})
@@ -61,7 +72,12 @@ class IndoorEnv(gym.Env):
         Returns: observation (object): the initial observation of the
             space.
         """
+        #start_time = time.time()
         res = self._sim.reset()
+        #print("Time per reset: {}".format(time.time()-start_time))
+        self.last_x = 0
+        self.last_y = 0
+        self.positions = []
         return res.get('observation')
 
     def _step(self, action):
@@ -77,12 +93,16 @@ class IndoorEnv(gym.Env):
             done (boolean): whether the episode has ended, in which case further step() calls will return undefined results
             info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)
         """
-        ## a = [0]*self._sim.num_buttons
-        ## a[action] = 1
-        state = self._sim.step(action)
+        #start_time = time.time()
+        a = [0]*self._sim.num_buttons
+        a[action] = 1
+        state = self._sim.step(a)
         self._last_state = state  # Last observed state
         observation = {k:v for k,v in state.items() if k not in ['rewards','terminals']}
         info = state['info']
+
+        #print(reward)
+        #print("Time per step: {}".format(time.time()-start_time))
         return observation, state['rewards'], state['terminals'], info
 
     def _render(self, mode='human', close=False):

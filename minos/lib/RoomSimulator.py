@@ -168,7 +168,7 @@ class RoomSimulator:
             if force or self.num_steps_this_episode > 0:
                 # Start new episode if previous episode has been acted in or forcing reset
                 #print('Reset: end episode')
-                self.end_episode(False, print_episode_stats=True)
+                self.end_episode(False, print_episode_stats=False)
                 episode_info = self.new_episode()
             else:
                 episode_info = self.start_config_this_episode
@@ -195,7 +195,7 @@ class RoomSimulator:
         response = self._augment_response(response, last_observation)
 
         if response['terminals']:
-            self.end_episode(response['success'], print_episode_stats=True)
+            self.end_episode(response['success'], print_episode_stats=False)
 
         return response
 

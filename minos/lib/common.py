@@ -113,6 +113,10 @@ def observation_to_reward(reward_type, observation, meas, term, success, last_ob
             if last_path and 'distance' in last_path:
                 delta_dist = last_path['distance'] - path['distance']
         return delta_dist + delta_time
+    elif reward_type == 1:
+        return 0
+    elif reward_type == 2:
+        return 0
     else:
         raise Exception('Unknown reward type: ' + reward_type)
 

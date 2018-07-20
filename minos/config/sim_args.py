@@ -73,7 +73,7 @@ def add_sim_args(parser):
                         default=False,
                         help='Whether to manual start the server')
     parser.add_argument('--depth', action='store_true',
-                        default=False,
+                        default=True,
                         help='Depth frames enabled')
     parser.add_argument('--depth_noise', action='store_true',
                         default=False,
@@ -89,7 +89,7 @@ def add_sim_args(parser):
                         default=True,
                         type=str2bool,
                         help='Collision forces enabled')
-    parser.add_argument('-s', '--sensors',
+    parser.add_argument('--sensors',
                         action='append',
                         choices=['normal', 'objectId', 'objectType', 'roomType', 'roomId', 'map'],
                         default=[],
@@ -155,7 +155,7 @@ def add_sim_args(parser):
     parser.add_argument('--env_config',
                         default='objectgoal_suncg_sf',
                         help='Environment configuration file to use (corresponds to py file in config/envs dir)')
-    parser.add_argument('--task', type=str,
+    parser.add_argument('--minos-task', type=str,
                         default='object_goal',
                         help='Type of task to perform')
     parser.add_argument('--scene_format',
@@ -225,7 +225,7 @@ def parse_sim_args(parser):
             'positionAt': 'goal'
         }]
 
-    args.goal = get_goal_for_task(args.task)
+    args.goal = get_goal_for_task(args.minos_task)
     args.audio = {'debug': args.debug, 'debug_memory': args.debug_audio_memory}
     args.actionTraceLogFields = ['forces']
     args.auto_start = not args.manual_start
@@ -233,6 +233,14 @@ def parse_sim_args(parser):
         args.audio = {'port': 1112}
         args.port = 4899
 
+    # Handling conflicting and reduntant arguments in Minos
+    #args.reward_type = 'dist_time'
+    args.width = args.frame_width
+    args.height = args.frame_height
+    if 'd' in args.input_type:
+        args.depth = True
+    else:
+        args.depth = False
     sim_args = sim_config.get(args.env_config, vars(args))
     sim_args = edict(sim_args)
     return sim_args
