@@ -87,6 +87,9 @@ class RoomSimulator:
         # update episode configuration
         self.num_episodes_this_scene += 1
         ep_settings = self.episode_schedulers[self.curr_schedule].next_episode()
+        #ep_settings = {}
+        #ep_settings['scene_id'] = 'f9cd089a284fbc3d5b3ea4ee9774f8e5'
+
         if not 'level' in ep_settings:  # default to 0th level
             ep_settings['level'] = 0  # NOTE: this assumes that we only use one level
         config = {}
@@ -111,8 +114,11 @@ class RoomSimulator:
                                'level': ep_settings['level'],
                                'textureSet': self.curr_schedule}
             # print('restart_needed or scene_changed: config', config, 'ep_settings', ep_settings)
+            #print(config)
+            #start_time = time.time()
             self.sim.configure(config)
             result = self.sim.start()
+            #print("Scene change time: {}".format(time.time()-start_time))
         else:
             # print('reset: config', config, 'ep_settings', ep_settings)
             self.sim.configure(config)

@@ -193,8 +193,10 @@ def create_episode_schedulers(params):
     state_set = StateSet(scenescsv, [states], scene_filter, episode_filter,
                          select_policy=SelectPolicy(Select.RANGE_VALUE, 'pathDist'))
     state_set_splits = state_set.get_splits(max_states_per_scene)
-    for k in state_set_splits:
-        print(k + ':' + str(len(state_set_splits[k].states)) + ' episodes')
+    #for k in state_set_splits['train'].states:
+        #print(k)
+    #for k in state_set_splits:
+        #print(k + ':' + str(len(state_set_splits[k].states)) + ' episodes')
 
     train_scheduler = EpisodeScheduler(state_set_splits['train'], schedule='random', seed=seed,
                                        num_episodes_per_scene=episodes_per_scene_train)

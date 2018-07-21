@@ -72,9 +72,9 @@ def add_sim_args(parser):
     parser.add_argument('--manual_start', action='store_true',
                         default=False,
                         help='Whether to manual start the server')
-    parser.add_argument('--depth', action='store_true',
-                        default=True,
-                        help='Depth frames enabled')
+    #parser.add_argument('--depth', action='store_true',
+                        #default=True,
+                        #help='Depth frames enabled')
     parser.add_argument('--depth_noise', action='store_true',
                         default=False,
                         help='Depth gaussian noise enabled')
@@ -143,6 +143,7 @@ def add_sim_args(parser):
                         default=False,
                         help='Debug memory usage (by simserver)')
     parser.add_argument('--scene_ids', nargs='*',
+                        #default=['00a76592d5cc7d92eef022393784a2de'],
                         default=['00a76592d5cc7d92eef022393784a2de', '066e8a32fd15541e814a9eafa82abf5d',
                                  '11be354e8dbd5d7275c486a5037ea949'],
                         help='Scene ids to load')
@@ -150,7 +151,7 @@ def add_sim_args(parser):
                         default=None,
                         help='Room id to load')
     parser.add_argument('--agent_config', type=str,
-                        default='',
+                        default='agent_continuous',
                         help='Agent configuration to use (corresponds to agent config JSON file in config dir)')
     parser.add_argument('--env_config',
                         default='objectgoal_suncg_sf',
@@ -198,7 +199,7 @@ def parse_sim_args(parser):
         replace_doors = json.load(f)
     if args.depth_noise:
         args.sensors = [{'name': 'depth', 'noise': True}]
-    args.observations = {'color': True, 'depth': args.depth, 'forces': args.forces, 'audio': args.audio}
+    args.observations = {'color': False, 'depth': False, 'forces': args.forces, 'audio': args.audio}
     for s in args.sensors:
         args.observations[s] = True
     args.collision_detection = {'mode': args.collision_mode}
@@ -238,9 +239,18 @@ def parse_sim_args(parser):
     args.width = args.frame_width
     args.height = args.frame_height
     if 'd' in args.input_type:
-        args.depth = True
+        args.observations['depth'] = True
     else:
-        args.depth = False
+        args.observations['depth'] = False
+    if 'rgb' in args.input_type or args.visualize:
+        args.observations['color'] = True
+    else:
+        args.observations['color'] = False
+    args.assetCacheSize = 100000
+    args.start = 'random'
+    args.timeStep = 1.0/7.0
+    #params.start = {}
+    #params.start['position'] = [x, y, z]
     sim_args = sim_config.get(args.env_config, vars(args))
     sim_args = edict(sim_args)
     return sim_args

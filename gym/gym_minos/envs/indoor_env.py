@@ -7,18 +7,12 @@ from gym import spaces
 from gym.utils import seeding
 import numpy as np
 import time
+import pyglet
 
 # This is currently an experimental wrapper that wraps around the room simulator
 # It may make sense to wrap the Simulator and have several prespecified configurations
 #  (or have a base IndoorEnv and specific scenarios on top of it)
 from minos.lib.RoomSimulator import RoomSimulator
-
-def get_l2_distance(x1, x2, y1, y2):
-    """
-    Computes the L2 distance between two points
-    """
-    return ((x1-x2)**2 + (y1-y2)**2)**0.5
-
 
 class IndoorEnv(gym.Env):
     metadata = {'render.modes': ['human', 'rgb_array']}
@@ -30,13 +24,14 @@ class IndoorEnv(gym.Env):
 
     def configure(self, sim_args):
         self._sim = RoomSimulator(sim_args)
-        self._sim_obs_space = self._sim.get_observation_space(sim_args['outputs'])
+        #self._sim_obs_space = self._sim.get_observation_space(sim_args['outputs'])
         self.action_space = spaces.Discrete(self._sim.num_buttons)
         #self.action_space = spaces.MultiBinary(self._sim.num_buttons)
-        self.screen_height = self._sim_obs_space['color'].shape[1]
-        self.screen_width = self._sim_obs_space['color'].shape[0]
+        #self.screen_height = self._sim_obs_space['color'].shape[1]
+        #self.screen_width = self._sim_obs_space['color'].shape[0]
         self.observation_space = spaces.Box(low=0, high=255,
-            shape=(len(sim_args['input_type']), self.screen_height, self.screen_width), dtype='uint8')
+            shape=(len(sim_args['input_type']), sim_args['frame_height'], sim_args['frame_width']),
+            dtype='float32')
 
         self.input_type = sim_args['input_type']
         self.reward_type = sim_args['reward_type']
@@ -75,9 +70,6 @@ class IndoorEnv(gym.Env):
         #start_time = time.time()
         res = self._sim.reset()
         #print("Time per reset: {}".format(time.time()-start_time))
-        self.last_x = 0
-        self.last_y = 0
-        self.positions = []
         return res.get('observation')
 
     def _step(self, action):
@@ -141,8 +133,11 @@ class IndoorEnv(gym.Env):
             if mode == 'human':
                 from gym.envs.classic_control import rendering
                 if self.viewer is None:
-                    if self.viewer is None:
-                        self.viewer = rendering.SimpleImageViewer()
+                    self.viewer = rendering.SimpleImageViewer()
+                    #self.viewer.width = img.shape[0]
+                    #self.viewer.height = img.shape[1]
+                    self.viewer.window = pyglet.window.Window(width=img.shape[1], height=img.shape[0],
+                            display=self.viewer.display, vsync=False, resizable=True)
                 self.viewer.imshow(img)
             elif mode == 'rgb_array':
                 return img

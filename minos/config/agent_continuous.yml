@@ -1,5 +1,5 @@
 ---
-eyeHeight: 1.09                   # m height eye level
+eyeHeight: 0.5                   # m height eye level
 radius: 0.1                       # 10cm radius cylinder
 radialClearance: 0.2              # clearance to leave from center of agent for shortest path computations
 mass: 32.0                        # kg weight
